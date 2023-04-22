@@ -12,8 +12,6 @@ class CustomUser(AbstractUser):
     first_name = models.TextField(max_length=150, blank=False)
     last_name = models.TextField(max_length=150, blank=False)
     password = models.TextField(max_length=150, blank=False)
-    # shopping_cart = models.ForeignKey(ShoppingCart,
-    #                                   on_delete=models.CASCADE)
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'password']
 
     def __str__(self):

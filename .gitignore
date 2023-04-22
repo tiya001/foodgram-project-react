@@ -143,3 +143,6 @@ migrations/
 
 # static
 static/
+
+#vscode
+.vscode

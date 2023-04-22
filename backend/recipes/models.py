@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import UniqueConstraint
 from users.models import CustomUser
+from django.core.validators import MinValueValidator
 
 
 class Ingredient(models.Model):
@@ -19,8 +20,8 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=200, blank=False)
-    color = models.CharField(max_length=7, blank=True)
+    name = models.CharField(max_length=200, unique=True)
+    color = models.CharField(max_length=7, blank=True, unique=True)
     slug = models.SlugField(max_length=200, unique=True)
 
     def __str__(self):
@@ -36,9 +37,10 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(Tag)
     image = models.ImageField(blank=False)
-    name = models.CharField(max_length=200, blank=False)
+    name = models.CharField(max_length=200)
     text = models.TextField()
-    cooking_time = models.IntegerField()
+    cooking_time = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],)
 
     def __str__(self):
         return self.name
@@ -57,6 +59,7 @@ class IngredientInRecipe(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name="Количество ингредиентов",
+        validators=[MinValueValidator(1)],
     )
 
 
@@ -74,7 +77,6 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
-        # abstract = True
         constraints = [
             UniqueConstraint(
                 fields=('user', 'recipe'),
