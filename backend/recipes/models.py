@@ -5,18 +5,18 @@ from django.core.validators import MinValueValidator
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=150, blank=False)
+    name = models.CharField(max_length=150, db_index=True)
     measurement_unit = models.CharField(max_length=150, blank=False)
 
     class Meta:
-        ordering = ['id']
+        # ordering = ['id']
         constraints = [
             models.UniqueConstraint(fields=['name', 'measurement_unit'],
                                     name='unique ingredient')
         ]
 
     def __str__(self):
-        return self.name
+        return f'{self.name}, {self.measurement_unit}'
 
 
 class Tag(models.Model):
@@ -33,7 +33,7 @@ class Recipe(models.Model):
                                on_delete=models.CASCADE,
                                related_name='recipes')
     ingredients = models.ManyToManyField(
-        Ingredient, through='IngredientInRecipe', related_name='recipes'
+        Ingredient, through='IngredientInRecipe'
     )
     tags = models.ManyToManyField(Tag)
     image = models.ImageField(blank=False)
@@ -50,7 +50,6 @@ class IngredientInRecipe(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient_in_recipe',
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -61,6 +60,17 @@ class IngredientInRecipe(models.Model):
         verbose_name="Количество ингредиентов",
         validators=[MinValueValidator(1)],
     )
+
+    class Meta:
+        ordering = ('-id', )
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты рецепта'
+
+    def __str__(self):
+        return (
+            f'{self.ingredient.name} :: {self.ingredient.measurement_unit}'
+            f' - {self.amount} '
+        )
 
 
 class ShoppingCart(models.Model):
