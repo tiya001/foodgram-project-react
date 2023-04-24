@@ -1,24 +1,25 @@
-from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import (Ingredient, Tag, Recipe,
-                            ShoppingCart, IngredientInRecipe, FavoriteRecipes)
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from api.pagination import CustomPagination
-from .serializers import (IngredientSerializer, TagSerializer,
-                          ShoppingCartSerializer,
-                          FavoriteSerializer, UserSerializer,
-                          SubscribeListSerializer,
-                          RecipeSerializer, PostPatchRecipeSerializer)
-from rest_framework.decorators import action
-from .filters import IngredientFilter, RecipeFilter
-from django.shortcuts import get_object_or_404
 from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
+
+from api.pagination import CustomPagination
+from recipes.models import (FavoriteRecipes, Ingredient, IngredientInRecipe,
+                            Recipe, ShoppingCart, Tag)
 from users.models import CustomUser, Follow
-from djoser.views import UserViewSet
+
+from .filters import IngredientFilter, RecipeFilter
 from .permissions import AuthorPermission
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          PostPatchRecipeSerializer, RecipeSerializer,
+                          ShoppingCartSerializer, SubscribeListSerializer,
+                          TagSerializer, UserSerializer)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -63,27 +64,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            context = {'request': request}
-            recipe = get_object_or_404(Recipe, id=pk)
-            data = {
-                'user': request.user.id,
-                'recipe': recipe.id
-            }
-            serializer = ShoppingCartSerializer(data=data, context=context)
-            if ShoppingCart.objects.filter(user=data['user'],
-                                           recipe=data['recipe']).exists():
-                ShoppingCart.objects.get(user=data['user'],
-                                         recipe=data['recipe']).delete()
-                return Response(
-                        {'status': 'Рецепт успешно удален из списка покупок'},
-                        status=status.HTTP_200_OK,
-                    )
-            else:
-                return Response(
-                        {'status': 'Рецепта не было в списке покупок'},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+        context = {'request': request}
+        recipe = get_object_or_404(Recipe, id=pk)
+        data = {
+            'user': request.user.id,
+            'recipe': recipe.id
+        }
+        serializer = ShoppingCartSerializer(data=data, context=context)
+        if ShoppingCart.objects.filter(user=data['user'],
+                                       recipe=data['recipe']).exists():
+            ShoppingCart.objects.get(user=data['user'],
+                                     recipe=data['recipe']).delete()
+            return Response(
+                    {'status': 'Рецепт успешно удален из списка покупок'},
+                    status=status.HTTP_200_OK,
+                )
+        return Response(
+                {'status': 'Рецепта не было в списке покупок'},
+                status=status.HTTP_400_BAD_REQUEST,
+                )
 
     @action(
         methods=['GET'],
@@ -127,27 +126,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            context = {'request': request}
-            recipe = get_object_or_404(Recipe, id=pk)
-            data = {
-                'user': request.user.id,
-                'recipe': recipe.id
-            }
-            serializer = FavoriteSerializer(data=data, context=context)
-            if FavoriteRecipes.objects.filter(user=data['user'],
-                                              recipe=data['recipe']).exists():
-                FavoriteRecipes.objects.get(user=data['user'],
-                                            recipe=data['recipe']).delete()
-                return Response(
-                    {'status': 'Рецепт успешно удален из списка избранных'},
-                    status=status.HTTP_200_OK,
-                    )
-            else:
-                return Response(
-                    {'status': 'Рецепта не было в списке избранных'},
-                    status=status.HTTP_400_BAD_REQUEST,
-                    )
+        context = {'request': request}
+        recipe = get_object_or_404(Recipe, id=pk)
+        data = {
+            'user': request.user.id,
+            'recipe': recipe.id
+        }
+        serializer = FavoriteSerializer(data=data, context=context)
+        if FavoriteRecipes.objects.filter(user=data['user'],
+                                          recipe=data['recipe']).exists():
+            FavoriteRecipes.objects.get(user=data['user'],
+                                        recipe=data['recipe']).delete()
+            return Response(
+                {'status': 'Рецепт успешно удален из списка избранных'},
+                status=status.HTTP_200_OK,
+                )
+        return Response(
+            {'status': 'Рецепта не было в списке избранных'},
+            status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class UserViewSet(UserViewSet):
@@ -176,6 +173,7 @@ class UserViewSet(UserViewSet):
                 Follow, user=user, author=author
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        return None
 
     @action(detail=False,
             )

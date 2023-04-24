@@ -1,11 +1,12 @@
-from rest_framework import serializers, status
-from recipes.models import (Ingredient, Tag, Recipe,
-                            IngredientInRecipe, ShoppingCart, FavoriteRecipes)
-from drf_extra_fields.fields import Base64ImageField
-from rest_framework.generics import get_object_or_404
-from rest_framework.exceptions import ValidationError
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
+from rest_framework.generics import get_object_or_404
+
+from recipes.models import (FavoriteRecipes, Ingredient, IngredientInRecipe,
+                            Recipe, ShoppingCart, Tag)
 from users.models import CustomUser
 
 
