@@ -7,7 +7,7 @@ services:
     env_file:
       - ./.env
   backend:
-    build: ../backend
+    image: tiya001/foodgram:backend_latest
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -15,11 +15,9 @@ services:
     depends_on:
       - db
     env_file:
-      - ./.env
+      - .env
   frontend:
-    build: 
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: tiya001/foodgram:frontend_latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
