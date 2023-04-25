@@ -29,3 +29,4 @@ psycopg2-binary==2.8.6
 Pillow==9.5.0
 drf-extra-fields==3.4.1
 djoser==2.1.0
+python-dotenv==0.21.0
