@@ -4,7 +4,6 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 from rest_framework.generics import get_object_or_404
-
 from recipes.models import (FavoriteRecipes, Ingredient, IngredientInRecipe,
                             Recipe, ShoppingCart, Tag)
 from users.models import CustomUser
