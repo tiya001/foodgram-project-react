@@ -10,7 +10,6 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(max_length=150, blank=False)
 
     class Meta:
-        # ordering = ['id']
         constraints = [
             models.UniqueConstraint(fields=['name', 'measurement_unit'],
                                     name='unique ingredient')
@@ -22,7 +21,7 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    color = models.CharField(max_length=7, blank=True, unique=True)
+    color = models.CharField(max_length=7, unique=True)
     slug = models.SlugField(max_length=200, unique=True)
 
     def __str__(self):
@@ -42,6 +41,12 @@ class Recipe(models.Model):
     text = models.TextField()
     cooking_time = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],)
+    pub_date = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.name

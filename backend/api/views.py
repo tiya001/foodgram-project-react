@@ -4,7 +4,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
@@ -20,6 +19,7 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           PostPatchRecipeSerializer, RecipeSerializer,
                           ShoppingCartSerializer, SubscribeListSerializer,
                           TagSerializer, UserSerializer)
+from django.db.models import Sum
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -89,24 +89,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=False,
     )
     def download_shopping_cart(self, request):
-        shopping_dict = {}
-        shopping_cart_set = ShoppingCart.objects.filter(
-            user=self.request.user
-        ).all()
-        if not shopping_cart_set:
-            raise ValidationError(
-                detail={'error': ['Ваш список покупок пуст :(']}
-            )
-        for i in shopping_cart_set:
-            for i in IngredientInRecipe.objects.filter(recipe=i.recipe).all():
-                b = (f'{i.ingredient.name},{i.ingredient.measurement_unit}')
-                if b in shopping_dict:
-                    shopping_dict[b] += i.amount
-                else:
-                    shopping_dict[b] = i.amount
+        ingredients = IngredientInRecipe.objects.filter(
+            recipe__shopping_list__user=request.user
+        ).order_by('ingredient__name').values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
+        shopping_list = 'Cписок покупок:'
+        for ingredient in ingredients:
+            shopping_list += (
+                f"\n{ingredient['ingredient__name']} "
+                f"({ingredient['ingredient__measurement_unit']}) - "
+                f"{ingredient['amount']}")
         file = 'shopping_list.txt'
-        response = HttpResponse(shopping_dict.items(),
-                                content_type='text/plain')
+        response = HttpResponse(shopping_list, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename="{file}.txt"'
         return response
 
