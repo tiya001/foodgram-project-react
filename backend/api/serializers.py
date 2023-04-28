@@ -21,6 +21,18 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', )
 
 
+class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
+
+    class Meta:
+        model = IngredientInRecipe
+        fields = ('id', 'name', 'measurement_unit', 'amount',)
+
+
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all()
@@ -38,7 +50,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(read_only=False, many=True)
-    ingredients = IngredientInRecipeSerializer(
+    ingredients = IngredientInRecipeReadSerializer(
         many=True,
         source='ingredient_in_recipe')
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -192,9 +204,6 @@ class PostPatchRecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Ингридиенты должны быть уникальны')
             ingredients_list.append(ingredient['id'])
-            if int(ingredient.get('amount')) < 1:
-                raise serializers.ValidationError(
-                    'Количество ингредиента больше 0')
         return ingredients
 
     @staticmethod
